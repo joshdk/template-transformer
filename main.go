@@ -6,8 +6,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"os"
+
+	"github.com/joshdk/template-transformer/config"
 )
 
 func main() {
@@ -18,5 +22,21 @@ func main() {
 }
 
 func mainCmd() error {
+	// When invoked via "kustomize build" the first (os.Args[1]) is a temporary
+	// filename containing the plugin configuration. Validate that we are being
+	// properly run as a plugin.
+	if len(os.Args) < 2 {
+		return errors.New("not invoked as a kustomize plugin")
+	}
+
+	// Parse the plugin configuration file.
+	cfg, err := config.Load(os.Args[1])
+	if err != nil {
+		return err
+	}
+
+	// For now, just log the plugin configuration.
+	log.Printf("plugin config: %+v", cfg)
+
 	return nil
 }
