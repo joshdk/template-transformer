@@ -23,5 +23,10 @@ func Load(filename string) (*Config, error) {
 		return nil, err
 	}
 
+	// Validate the config struct for correctness.
+	if err := validate(&cfg); err != nil {
+		return nil, err
+	}
+
 	return &cfg, nil
 }
