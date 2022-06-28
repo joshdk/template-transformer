@@ -5,7 +5,10 @@
 
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
 func validate(cfg *Config) error {
 	// At least one property needs to be configured.
@@ -50,6 +53,40 @@ func validate(cfg *Config) error {
 				}
 			}
 		}
+
+		if property.Mutate.Pattern != "" {
+			// The regex needs to actually compile.
+			regex, err := regexp.Compile(property.Mutate.Pattern)
+			if err != nil {
+				return PathError{
+					Wrapped: err,
+					Paths:   []string{"properties", property.Name, "mutate", "pattern"},
+				}
+			}
+
+			// The capture must be within range of the number of capture groups
+			// in the regex.
+			if property.Mutate.Capture > regex.NumSubexp() {
+				return PathError{
+					Message: "out of range",
+					Paths:   []string{"properties", property.Name, "mutate", "capture"},
+				}
+			}
+
+			// Cache the compiled regex for later use.
+			property.Mutate.Regex = regex
+		}
+
+		// If no regex is configured than capture must also not be configured.
+		if property.Mutate.Pattern == "" && property.Mutate.Capture != 0 {
+			return PathError{
+				Message: "no value",
+				Paths:   []string{"properties", property.Name, "mutate", "pattern"},
+			}
+		}
+
+		// Persist the updated property.
+		cfg.Properties[propertyIndex] = property
 	}
 
 	return nil

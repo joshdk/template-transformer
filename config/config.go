@@ -5,6 +5,8 @@
 
 package config
 
+import "regexp"
+
 // Config represents a kustomize plugin configuration.
 type Config struct {
 	// Properties is a list of named properties used for templating.
@@ -28,4 +30,21 @@ type Property struct {
 	// Default is an optional fallback value used when none of the source
 	// environment variables exist or contain a value.
 	Default string `yaml:"default"`
+
+	// Mutate is an optional operation to transform the final value by using a
+	// regex capture.
+	Mutate Mutate `yaml:"mutate"`
+}
+
+// Mutate represents a transform that can be applied to a value by using a
+// regex capture.
+type Mutate struct {
+	// Pattern is a regex used to match against a value.
+	Pattern string `yaml:"pattern"`
+
+	// Capture is the regex capture group used to transform the value.
+	Capture int `yaml:"capture"`
+
+	// Regex is a compiled regex that can be reused.
+	Regex *regexp.Regexp `yaml:"-"`
 }
