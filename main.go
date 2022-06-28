@@ -42,9 +42,12 @@ func mainCmd() error {
 	// to their respective values.
 	properties := make(map[string]string)
 	for _, property := range cfg.Properties {
-		value, found := resolve(property)
-		if !found {
-			return fmt.Errorf("could not resolve value for property %s", property.Name)
+		value, err := resolve(property)
+		if err != nil {
+			return config.PathError{
+				Wrapped: err,
+				Paths:   []string{"properties", property.Name},
+			}
 		}
 
 		properties[property.Name] = value
@@ -57,22 +60,36 @@ func mainCmd() error {
 }
 
 // resolve obtains a final value for the given property.
-func resolve(property config.Property) (string, bool) {
+func resolve(property config.Property) (string, error) {
 	// Check every environment variable, in the order they were specified, and
 	// return the first value that is found.
 	for _, source := range property.Source {
 		// If this environment variable contains a value then return it.
 		if value := os.Getenv(source); value != "" {
-			return value, true
+			// If a regex was configured then mutate the value.
+			if property.Mutate.Regex != nil {
+				// List the regex matches for the original value.
+				matches := property.Mutate.Regex.FindStringSubmatch(value)
+
+				// Check that the original value actually matches the regex.
+				if len(matches) == 0 {
+					return "", fmt.Errorf("value %q did not match mutate regex", value)
+				}
+
+				// Return the configured capture group.
+				value = matches[property.Mutate.Capture]
+			}
+
+			return value, nil
 		}
 	}
 
 	// No environment variables contained a value. If a default is configured
 	// then return it.
 	if property.Default != "" {
-		return property.Default, true
+		return property.Default, nil
 	}
 
 	// No value could be obtained.
-	return "", false
+	return "", errors.New("could not resolve value for property")
 }
