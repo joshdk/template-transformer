@@ -8,10 +8,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
 	"github.com/joshdk/template-transformer/config"
+	"gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -56,7 +58,9 @@ func mainCmd() error {
 	// For now, just log the property values.
 	log.Printf("properties: %+v", properties)
 
-	return nil
+	// Read resources from the input stream, transform them, and write them
+	// back to the output stream.
+	return transform(os.Stdin, os.Stdout, properties)
 }
 
 // resolve obtains a final value for the given property.
@@ -92,4 +96,40 @@ func resolve(property config.Property) (string, error) {
 
 	// No value could be obtained.
 	return "", errors.New("could not resolve value for property")
+}
+
+// transform reads resources from the input stream, modifies them, and writes
+// them back to the output stream.
+func transform(in io.Reader, out io.Writer, properties map[string]string) error {
+	decoder := yaml.NewDecoder(in)
+	for {
+		// Unmarshal a single yaml document (kubernetes resource) from the
+		// input stream.
+		var resource interface{}
+		if err := decoder.Decode(&resource); err != nil {
+			// Quit processing if there are no more documents left in the
+			// stream.
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+
+		// Immediately marshal the resource back into yaml as we will need to
+		// template it as an opaque slice of bytes.
+		data, err := yaml.Marshal(resource)
+		if err != nil {
+			return err
+		}
+
+		// For now, just write the resource verbatim to the output stream.
+		if _, err := out.Write(data); err != nil {
+			return err
+		}
+
+		// Write a yaml document separator so that multiple documents can be written to the output stream.
+		if _, err := out.Write([]byte("---\n")); err != nil {
+			return err
+		}
+	}
 }
