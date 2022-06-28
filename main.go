@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"text/template"
 
 	"github.com/joshdk/template-transformer/config"
 	"gopkg.in/yaml.v3"
@@ -122,8 +123,23 @@ func transform(in io.Reader, out io.Writer, properties map[string]string) error 
 			return err
 		}
 
-		// For now, just write the resource verbatim to the output stream.
-		if _, err := out.Write(data); err != nil {
+		// These are the template delimiters used for referencing named
+		// properties like "${{.PROPERTY}}".
+		// These delimiters were chosen to:
+		// - Survive round-tripping through the yaml parser.
+		// - Not conflict with the kustomize vars syntax.
+		// - Not conflict with kubernetes var references.
+		// - Not conflict with various types of bash expansion.
+		const prefix, suffix = "${{", "}}"
+
+		// Parse the entire resource body as a text template.
+		tpl, err := template.New("stream").Option("missingkey=error").Delims(prefix, suffix).Parse(string(data))
+		if err != nil {
+			return err
+		}
+
+		// Execute the template and write the result to the output stream.
+		if err := tpl.Execute(out, properties); err != nil {
 			return err
 		}
 
