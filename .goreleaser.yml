@@ -1,0 +1,58 @@
+project_name: template-transformer
+
+builds:
+  - id: template-transformer
+    binary: TemplateTransformer
+
+    targets:
+      - darwin_amd64
+      - linux_amd64
+
+    flags:
+      - -trimpath
+
+    ldflags:
+      - -s -w
+      - -X jdk.sh/meta.date={{ .Date }}
+      - -X jdk.sh/meta.sha={{ .Commit }}
+      - -X jdk.sh/meta.version={{ .Tag }}
+      - -buildid=
+
+    env:
+      - CGO_ENABLED=0
+
+    hooks:
+      post: upx --best --ultra-brute "{{ .Path }}"
+
+  - id: template-transformer-m1
+    binary: TemplateTransformer
+
+    targets:
+      - darwin_arm64
+
+    flags:
+      - -trimpath
+
+    ldflags:
+      - -s -w
+      - -X jdk.sh/meta.date={{ .Date }}
+      - -X jdk.sh/meta.sha={{ .Commit }}
+      - -X jdk.sh/meta.version={{ .Tag }}
+      - -buildid=
+
+    env:
+      - CGO_ENABLED=0
+
+archives:
+  - id: template-transformer
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+
+release:
+  name_template: "{{ .Tag }} Release"
+  prerelease: auto
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  skip: true
