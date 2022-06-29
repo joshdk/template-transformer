@@ -12,9 +12,11 @@ import (
 	"log"
 	"os"
 	"text/template"
+	"time"
 
 	"github.com/joshdk/template-transformer/config"
 	"gopkg.in/yaml.v3"
+	"jdk.sh/meta"
 )
 
 func main() {
@@ -25,6 +27,12 @@ func main() {
 }
 
 func mainCmd() error {
+	if len(os.Args) >= 2 && os.Args[1] == "--version" {
+		version()
+		return nil
+	}
+	log.Println("https://github.com/joshdk/template-transformer version", meta.Version())
+
 	// When invoked via "kustomize build" the first (os.Args[1]) is a temporary
 	// filename containing the plugin configuration. Validate that we are being
 	// properly run as a plugin.
@@ -148,4 +156,16 @@ func transform(in io.Reader, out io.Writer, properties map[string]string) error 
 			return err
 		}
 	}
+}
+
+func version() {
+	fmt.Println("homepage: https://github.com/joshdk/template-transformer")
+	fmt.Println("author:   Josh Komoroske")
+	fmt.Println("license:  MIT")
+	if meta.Version() == "" {
+		return
+	}
+	fmt.Println("version: ", meta.Version())
+	fmt.Println("sha:     ", meta.ShortSHA())
+	fmt.Println("date:    ", meta.DateFormat(time.RFC3339))
 }
