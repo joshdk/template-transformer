@@ -46,9 +46,6 @@ func mainCmd() error {
 		return err
 	}
 
-	// For now, just log the plugin configuration.
-	log.Printf("plugin config: %+v", cfg)
-
 	// Resolve all property values and build a complete map of property names
 	// to their respective values.
 	properties := make(map[string]string)
@@ -64,8 +61,10 @@ func mainCmd() error {
 		properties[property.Name] = value
 	}
 
-	// For now, just log the property values.
-	log.Printf("properties: %+v", properties)
+	// Log the resolved values for each property.
+	for key, value := range properties {
+		log.Printf("property %q resolved to %q", key, value)
+	}
 
 	// Read resources from the input stream, transform them, and write them
 	// back to the output stream.
