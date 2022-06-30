@@ -64,12 +64,11 @@ func validate(cfg *Config) error {
 				}
 			}
 
-			// The capture must be within range of the number of capture groups
-			// in the regex.
-			if property.Mutate.Capture > regex.NumSubexp() {
+			// Replace cannot be blank.
+			if property.Mutate.Replace == "" {
 				return PathError{
-					Message: "out of range",
-					Paths:   []string{"properties", property.Name, "mutate", "capture"},
+					Message: "no value",
+					Paths:   []string{"properties", property.Name, "mutate", "replace"},
 				}
 			}
 
@@ -77,8 +76,8 @@ func validate(cfg *Config) error {
 			property.Mutate.Regex = regex
 		}
 
-		// If no regex is configured than capture must also not be configured.
-		if property.Mutate.Pattern == "" && property.Mutate.Capture != 0 {
+		// If no regex is configured than replace must also not be configured.
+		if property.Mutate.Pattern == "" && property.Mutate.Replace != "" {
 			return PathError{
 				Message: "no value",
 				Paths:   []string{"properties", property.Name, "mutate", "pattern"},

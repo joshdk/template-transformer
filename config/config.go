@@ -42,8 +42,9 @@ type Mutate struct {
 	// Pattern is a regex used to match against a value.
 	Pattern string `yaml:"pattern"`
 
-	// Capture is the regex capture group used to transform the value.
-	Capture int `yaml:"capture"`
+	// Replace is a template that will be expanded using references from the
+	// matched regex.
+	Replace string `yaml:"replace"`
 
 	// Regex is a compiled regex that can be reused.
 	Regex *regexp.Regexp `yaml:"-"`
