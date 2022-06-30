@@ -82,15 +82,21 @@ func resolve(property config.Property) (string, error) {
 			// If a regex was configured then mutate the value.
 			if property.Mutate.Regex != nil {
 				// List the regex matches for the original value.
-				matches := property.Mutate.Regex.FindStringSubmatch(value)
+				matches := property.Mutate.Regex.FindStringSubmatchIndex(value)
 
 				// Check that the original value actually matches the regex.
 				if len(matches) == 0 {
 					return "", fmt.Errorf("value %q did not match mutate regex", value)
 				}
 
+				// Expand the template with the matched values.
+				replaced := property.Mutate.Regex.ExpandString(nil, property.Mutate.Replace, value, matches)
+				if len(replaced) == 0 {
+					return "", fmt.Errorf("replaced value was blank")
+				}
+
 				// Return the configured capture group.
-				value = matches[property.Mutate.Capture]
+				value = string(replaced)
 			}
 
 			return value, nil
