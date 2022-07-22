@@ -40,6 +40,18 @@ func mainCmd() error {
 		return errors.New("not invoked as a kustomize plugin")
 	}
 
+	// Construct a set of "built in" property values. This includes timestamps
+	// which are captured immediately after the plugin is invoked.
+	now := time.Now().UTC()
+	builtinProperties := map[string]string{
+		// DATETIME is the current time expressed in the RFC3339 format.
+		// An example would be "2022-07-22T14:52:46Z".
+		"DATETIME": now.Format(time.RFC3339),
+		// UNIXTIME is the current time expressed in the "Unix time" format.
+		// An example would be "1658501566".
+		"UNIXTIME": fmt.Sprint(now.Unix()),
+	}
+
 	// Parse the plugin configuration file.
 	cfg, err := config.Load(os.Args[1])
 	if err != nil {
@@ -50,6 +62,25 @@ func mainCmd() error {
 	// to their respective values.
 	properties := make(map[string]string)
 	for _, property := range cfg.Properties {
+		// Validate that a property with the same name as a built in property
+		// is not configured.
+		if _, found := builtinProperties[property.Name]; found {
+			return config.PathError{
+				Message: "cannot redefine built in property",
+				Paths:   []string{"properties", property.Name},
+			}
+		}
+
+		// Validate that a property with the same name as a previously
+		// configured property is not configured.
+		if _, found := properties[property.Name]; found {
+			return config.PathError{
+				Message: "cannot redefine property",
+				Paths:   []string{"properties", property.Name},
+			}
+		}
+
+		// Resolve a concrete value for the property.
 		value, err := resolve(property)
 		if err != nil {
 			return config.PathError{
@@ -59,6 +90,11 @@ func mainCmd() error {
 		}
 
 		properties[property.Name] = value
+	}
+
+	// Add the builtin properties to the final set of property values.
+	for name, value := range builtinProperties {
+		properties[name] = value
 	}
 
 	// Log the resolved values for each property.
