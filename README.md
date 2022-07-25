@@ -173,6 +173,15 @@ metadata:
     app.kubernetes.io/version: git-decafbad
 ```
 
+### Built in Properties
+
+There are a number of built in, non-redefinable properties that are implicitly included for convenience.
+
+| Name       | Description                           | Usage            | Example                |
+|------------|---------------------------------------|------------------|------------------------|
+| `DATETIME` | The current time in RFC3339 format    | `${{.DATETIME}}` | `2022-07-22T14:52:46Z` |
+| `UNIXTIME` | The current time in Unix/Epoch format | `${{.UNIXTIME}}` | `1658501566`           |
+
 ### ArgoCD
 
 If your are deploying Kustomize applications using ArgoCD, then please take note of the [ArgoCD build environment](https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/) as it contains a very limited set of environment variables.
