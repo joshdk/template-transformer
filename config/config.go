@@ -3,6 +3,8 @@
 // a copy of which can be found in the LICENSE.txt file.
 // SPDX-License-Identifier: MIT
 
+// Package config defines the configuration file format for the
+// TemplateTransformer plugin.
 package config
 
 import "regexp"
