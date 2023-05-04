@@ -13,7 +13,7 @@ import (
 
 // Load parses the contents of the given filename as YAML and returns a Config.
 func Load(filename string) (*Config, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := ioutil.ReadFile(filename) //nolint:gosec
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@
 // a copy of which can be found in the LICENSE.txt file.
 // SPDX-License-Identifier: MIT
 
+// Package main defines the main entry point for the TemplateTransformer plugin.
 package main
 
 import (
@@ -26,17 +27,19 @@ func main() {
 	}
 }
 
-func mainCmd() error {
+func mainCmd() error { //nolint:cyclop
 	if len(os.Args) >= 2 && os.Args[1] == "--version" {
 		version()
+
 		return nil
 	}
+
 	log.Println("https://github.com/joshdk/template-transformer version", meta.Version())
 
 	// When invoked via "kustomize build" the first (os.Args[1]) is a temporary
 	// filename containing the plugin configuration. Validate that we are being
 	// properly run as a plugin.
-	if len(os.Args) < 2 {
+	if len(os.Args) < 2 { //nolint:gomnd
 		return errors.New("not invoked as a kustomize plugin")
 	}
 
@@ -61,6 +64,7 @@ func mainCmd() error {
 	// Resolve all property values and build a complete map of property names
 	// to their respective values.
 	properties := make(map[string]string)
+
 	for _, property := range cfg.Properties {
 		// Validate that a property with the same name as a built in property
 		// is not configured.
@@ -113,7 +117,7 @@ func resolve(property config.Property) (string, error) {
 	// return the first value that is found.
 	for _, source := range property.Source {
 		// If this environment variable contains a value then return it.
-		if value := os.Getenv(source); value != "" {
+		if value := os.Getenv(source); value != "" { //nolint:nestif
 			// If a regex was configured then mutate the value.
 			if property.Mutate.Regex != nil {
 				// List the regex matches for the original value.
@@ -152,6 +156,7 @@ func resolve(property config.Property) (string, error) {
 // them back to the output stream.
 func transform(in io.Reader, out io.Writer, properties map[string]string) error {
 	decoder := yaml.NewDecoder(in)
+
 	for {
 		// Unmarshal a single yaml document (kubernetes resource) from the
 		// input stream.
@@ -159,9 +164,10 @@ func transform(in io.Reader, out io.Writer, properties map[string]string) error 
 		if err := decoder.Decode(&resource); err != nil {
 			// Quit processing if there are no more documents left in the
 			// stream.
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				return nil
 			}
+
 			return err
 		}
 
@@ -199,6 +205,7 @@ func transform(in io.Reader, out io.Writer, properties map[string]string) error 
 	}
 }
 
+//nolint:all
 func version() {
 	fmt.Println("homepage: https://github.com/joshdk/template-transformer")
 	fmt.Println("author:   Josh Komoroske")

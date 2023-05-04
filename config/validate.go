@@ -10,7 +10,7 @@ import (
 	"regexp"
 )
 
-func validate(cfg *Config) error {
+func validate(cfg *Config) error { //nolint:cyclop
 	// At least one property needs to be configured.
 	if len(cfg.Properties) == 0 {
 		return PathError{
