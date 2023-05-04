@@ -6,14 +6,14 @@
 package config
 
 import (
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
 // Load parses the contents of the given filename as YAML and returns a Config.
 func Load(filename string) (*Config, error) {
-	data, err := ioutil.ReadFile(filename) //nolint:gosec
+	data, err := os.ReadFile(filename) //nolint:gosec
 	if err != nil {
 		return nil, err
 	}
