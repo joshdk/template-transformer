@@ -21,7 +21,7 @@ This plugin also aims to facilitate this in a tightly controlled way in order to
 Prebuilt binaries for several architectures can be found attached to any of the available [releases][github-release-link].
 
 ```shell
-$ wget https://github.com/joshdk/template-transformer/releases/download/v0.2.1/template-transformer-linux-amd64.tar.gz
+$ wget https://github.com/joshdk/template-transformer/releases/download/v0.2.2/template-transformer-linux-amd64.tar.gz
 $ tar -xf template-transformer-linux-amd64.tar.gz
 $ mkdir -p ${XDG_CONFIG_HOME}/kustomize/plugin/jdk.sh/v1beta1/templatetransformer/
 $ install TemplateTransformer ${XDG_CONFIG_HOME}/kustomize/plugin/jdk.sh/v1beta1/templatetransformer/TemplateTransformer
